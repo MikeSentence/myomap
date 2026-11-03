@@ -1,0 +1,15 @@
+# local server / Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# editor / OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# local diagnostics
+node_modules/
+*.log

@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>肌源 MyoMap · 3D 肌肉疼痛自查</title>
+  <meta name="description" content="在真实解剖模型上点选肌肉，查看常见疼痛表现、牵涉痛走向与相关肌群，并生成属于自己的疼痛自查小结。" />
+  <meta name="theme-color" content="#0d0c0b" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%2314110f'/%3E%3Cpath d='M32 11c-7 0-11 5-11 12 0 3 1 5 1 8v12c0 7 4 11 10 11s10-4 10-11V31c0-3 1-5 1-8 0-7-4-12-11-12Z' fill='none' stroke='%23e56a4a' stroke-width='3'/%3E%3Cpath d='M32 16v33M24 28c3-2 5-2 8 0s5 2 8 0' fill='none' stroke='%23e56a4a' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="./css/styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="肌源 MyoMap 首页">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 40 40" fill="none">
+            <path d="M20 4.8c-5.1 0-8.2 3.7-8.2 8.7 0 2.2.8 3.8.8 6.1v9.2c0 5 3 7.9 7.4 7.9s7.4-2.9 7.4-7.9v-9.2c0-2.3.8-3.9.8-6.1 0-5-3.1-8.7-8.2-8.7Z" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M20 9v24.4M14 19.6c2.5-1.7 4.3-1.7 6 0s3.5 1.7 6 0M14 27.5c2.5-1.6 4.3-1.6 6 0s3.5 1.6 6 0" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span class="brand-copy">
+          <span class="brand-name">肌源 <i>MYOMAP</i></span>
+          <span class="brand-sub">3D 肌肉疼痛自查</span>
+        </span>
+      </a>
+
+      <div class="flow" aria-label="使用流程">
+        <span class="flow-step is-active" data-flow-step="1"><b>01</b> 点选肌肉</span>
+        <span class="flow-line"></span>
+        <span class="flow-step" data-flow-step="2"><b>02</b> 记录痛点</span>
+        <span class="flow-line"></span>
+        <span class="flow-step" data-flow-step="3"><b>03</b> 生成自查</span>
+      </div>
+
+      <div class="top-actions">
+        <button class="icon-button help-button" id="helpBtn" type="button" aria-label="使用说明">
+          <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="currentColor"/><path d="M9.8 9.4c.2-1.25 1.1-2 2.25-2 1.3 0 2.2.8 2.2 2 0 1.15-.65 1.65-1.7 2.3-.65.4-.95.9-.95 1.85M12 16.8v.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        </button>
+        <button class="check-button" id="openCheckBtn" type="button">
+          <span>我的自查</span>
+          <span class="check-count" id="checkCount">0</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <div class="drawer-scrim" id="drawerScrim" aria-hidden="true"></div>
+      <aside class="left-panel panel" id="leftPanel" aria-label="肌肉索引">
+        <div class="panel-grain" aria-hidden="true"></div>
+        <button class="panel-close" id="closeLeftBtn" type="button" aria-label="关闭肌肉索引">
+          <svg viewBox="0 0 24 24" fill="none"><path d="m7 7 10 10M17 7 7 17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </button>
+        <div class="left-scroll">
+          <div class="intro-block">
+            <p class="kicker">MUSCLE PAIN ATLAS <span>·</span> 01</p>
+            <h1>从疼痛位置，<br /><em>找到真正的来源。</em></h1>
+            <p class="intro-copy">点选 3D 肌肉，了解常见疼痛表现、牵涉痛走向，以及那些可能正在替它“背锅”的肌群。</p>
+          </div>
+
+          <div class="search-wrap">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none"><circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" stroke-width="1.5"/><path d="m16 16 4.2 4.2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <input id="searchInput" type="search" autocomplete="off" spellcheck="false" placeholder="搜索肌肉 / 英文名 / 症状" aria-label="搜索肌肉" />
+            <kbd>/</kbd>
+          </div>
+
+          <div class="section-heading">
+            <span>按身体部位探索</span>
+            <span class="list-total" id="listTotal">45 组</span>
+          </div>
+          <div class="region-filters" id="regionFilters" role="tablist" aria-label="按身体部位筛选"></div>
+
+          <div class="muscle-list" id="muscleList" aria-live="polite"></div>
+
+          <div class="sidebar-note">
+            <span class="note-dot"></span>
+            <p><b>这是教育工具，不是诊断。</b><br />疼痛原因可能来自肌肉、关节、神经或内脏。持续或加重的疼痛，请交给专业人士判断。</p>
+          </div>
+        </div>
+      </aside>
+
+      <section class="stage" id="stage" aria-label="3D 人体肌肉模型">
+        <div class="stage-atmosphere" aria-hidden="true">
+          <div class="glow glow-a"></div>
+          <div class="glow glow-b"></div>
+          <div class="stage-ring ring-a"></div>
+          <div class="stage-ring ring-b"></div>
+          <div class="stage-grid"></div>
+        </div>
+
+        <div class="stage-head">
+          <div class="stage-head-left">
+            <button class="mobile-explore" id="openLeftBtn" type="button">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+              <span>肌群索引</span>
+            </button>
+            <div class="live-badge"><span class="live-dot"></span> LIVE ANATOMY <i>·</i> <span id="meshCount">826</span> PARTS</div>
+            <div class="orientation-label"><span id="orientationZh">正视位</span><i>ANTERIOR</i></div>
+          </div>
+          <div class="layer-tools" aria-label="图层控制">
+            <span class="tool-label">图层</span>
+            <button class="layer-pill is-on" data-layer="muscle" type="button"><span class="layer-swatch muscle"></span>肌肉</button>
+            <button class="layer-pill is-on" data-layer="bone" type="button"><span class="layer-swatch bone"></span>骨骼</button>
+            <button class="layer-pill is-on" data-layer="hotspot" type="button"><span class="layer-swatch hotspot"></span>痛点</button>
+            <span class="tool-divider"></span>
+            <button class="layer-pill xray-pill" id="xrayBtn" type="button" aria-pressed="false" title="让非选中肌肉半透明，查看深层结构"><span class="layer-swatch xray"></span>透视</button>
+          </div>
+        </div>
+
+        <div class="viewport" id="viewport">
+          <canvas id="scene"></canvas>
+          <div class="view-frame" aria-hidden="true">
+            <span class="corner tl"></span><span class="corner tr"></span>
+            <span class="corner bl"></span><span class="corner br"></span>
+          </div>
+          <div class="hotspots" id="hotspots" aria-label="常见疼痛部位"></div>
+          <div class="hover-tip" id="hoverTip" role="status"></div>
+
+          <div class="loading-layer" id="loadingLayer">
+            <div class="loader-mark" aria-hidden="true">
+              <svg viewBox="0 0 64 64" fill="none">
+                <path d="M32 8c-9 0-14 6.3-14 14.8 0 3.8 1.3 6.5 1.3 10.4v14.2c0 8.6 5.2 13.4 12.7 13.4s12.7-4.8 12.7-13.4V33.2c0-3.9 1.3-6.6 1.3-10.4C46 14.3 41 8 32 8Z" stroke="currentColor" stroke-width="1.2"/>
+                <path d="M32 13v31M21 31c4-3 7-3 11 0s7 3 11 0M21 41c4-2.5 7-2.5 11 0s7 2.5 11 0" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+              </svg>
+              <span class="loader-pulse"></span>
+            </div>
+            <p class="loader-kicker">ASSEMBLING THE ANATOMY</p>
+            <h2>正在构建你的肌肉地图</h2>
+            <div class="loader-bar"><span id="loadBar"></span></div>
+            <div class="loader-meta"><span id="loadText">载入解剖模型 · 0%</span><span>826 PARTS</span></div>
+          </div>
+          <div class="error-layer" id="errorLayer">
+            <p class="kicker">MODEL UNAVAILABLE</p>
+            <h2>3D 模型没有载入成功</h2>
+            <p>请确认你正通过本地服务器打开本页，而不是直接双击 HTML 文件。</p>
+            <code>cd myomap &amp;&amp; python -m http.server 4173</code>
+            <button class="primary-button" id="retryBtn" type="button">重新载入</button>
+          </div>
+        </div>
+
+        <div class="stage-bottom">
+          <div class="legend">
+            <span><i class="legend-dot selected"></i>当前选择</span>
+            <span><i class="legend-dot related"></i>可能牵连</span>
+            <span><i class="legend-line"></i>点击定位</span>
+          </div>
+          <div class="view-dock" role="group" aria-label="视角控制">
+            <button class="view-btn is-active" data-view="front" type="button" title="正面视角">前</button>
+            <button class="view-btn" data-view="back" type="button" title="背面视角">后</button>
+            <button class="view-btn" data-view="left" type="button" title="身体左侧视角">左</button>
+            <button class="view-btn" data-view="right" type="button" title="身体右侧视角">右</button>
+            <span class="dock-divider"></span>
+            <button class="icon-tool" id="focusBtn" type="button" title="聚焦当前肌肉" aria-label="聚焦当前肌肉">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="12" cy="12" r="3.2" stroke="currentColor" stroke-width="1.4"/></svg>
+            </button>
+            <button class="icon-tool" id="rotateBtn" type="button" title="自动旋转" aria-label="自动旋转">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M20 8.2A8.4 8.4 0 1 0 20.2 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M20 3v5.4h-5.3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <button class="icon-tool" id="resetBtn" type="button" title="重置视角" aria-label="重置视角">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M4.5 9A8 8 0 1 1 4 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M4 4v5h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+          <p class="gesture-hint">拖拽旋转 <i>·</i> 滚轮缩放 <i>·</i> 双击聚焦</p>
+        </div>
+
+        <div class="stage-footnote">
+          <span>ANATOMY MESH</span>
+          <span>Z-Anatomy · CC BY-SA 4.0</span>
+        </div>
+      </section>
+
+      <aside class="right-panel panel" id="detailPanel" aria-label="肌肉详情">
+        <div class="panel-grain" aria-hidden="true"></div>
+        <div class="detail-empty" id="detailEmpty">
+          <div class="empty-visual" aria-hidden="true">
+            <span class="orbit orbit-1"></span>
+            <span class="orbit orbit-2"></span>
+            <svg viewBox="0 0 200 260" fill="none">
+              <path d="M100 18c-17 0-27 12-27 28 0 10 3 16 3 26v37c0 8 5 13 11 16v38c0 26 5 45 13 45s13-19 13-45v-38c6-3 11-8 11-16V72c0-10 3-16 3-26 0-16-10-28-27-28Z" stroke="currentColor" stroke-width="1"/>
+              <path d="M72 78c-10 4-17 15-20 32l-10 39c-2 8 2 11 7 9 4-2 6-7 9-17l11-26M128 78c10 4 17 15 20 32l10 39c2 8-2 11-7 9-4-2-6-7-9-17l-11-26M88 194c-3 22-3 42 0 49M112 194c3 22 3 42 0 49" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+              <path d="M100 72v97M82 94c5-4 11-4 18 0s13 4 18 0M84 123c5-4 11-4 16 0s11 4 16 0M90 152c4-3 8-3 10 0s6 3 10 0" stroke="currentColor" stroke-width=".8" stroke-linecap="round"/>
+            </svg>
+            <span class="scanline"></span>
+          </div>
+          <p class="kicker">START A SELF-CHECK</p>
+          <h2>身体的疼痛，<br />往往不在它出现的地方。</h2>
+          <p class="empty-copy">从中央的 3D 肌肉模型、上方“痛点”标记，或左侧肌群索引中选择一块肌肉。查看它是否与你的疼痛模式相似。</p>
+          <ol class="mini-steps">
+            <li><b>01</b><span>点选肌肉或常见痛点</span></li>
+            <li><b>02</b><span>查看症状与牵涉痛走向</span></li>
+            <li><b>03</b><span>记录痛点，生成自查小结</span></li>
+          </ol>
+          <button class="ghost-button" id="exampleBtn" type="button">以「斜方肌」为例看看 <span>→</span></button>
+          <p class="empty-disclaimer">内容仅作健康教育，不构成诊断。</p>
+        </div>
+
+        <article class="detail-content" id="detailContent" aria-live="polite">
+          <header class="detail-header">
+            <div class="detail-topline">
+              <p class="kicker"><span id="detailCode">07</span> / MUSCLE PROFILE</p>
+              <button class="detail-close" id="closeDetailBtn" type="button" aria-label="关闭详情">
+                <svg viewBox="0 0 24 24" fill="none"><path d="m7 7 10 10M17 7 7 17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+              </button>
+            </div>
+            <div class="detail-title-row">
+              <div>
+                <p class="detail-region" id="detailRegion">头颈 · 浅层</p>
+                <h2 id="detailZh">斜方肌</h2>
+                <p class="detail-en" id="detailEn">Trapezius</p>
+              </div>
+              <div class="side-stamp" id="sideStamp">BILATERAL</div>
+            </div>
+            <p class="detail-summary" id="detailSummary"></p>
+            <div class="detail-tags" id="detailTags"></div>
+          </header>
+
+          <div class="detail-scroll" id="detailScroll">
+            <section class="info-section location-section">
+              <div class="section-label"><span>01</span> 位置与触诊</div>
+              <p id="detailLocus"></p>
+            </section>
+
+            <section class="info-section">
+              <div class="section-label"><span>02</span> 常见疼痛表现</div>
+              <ul class="pain-list" id="detailPain"></ul>
+              <div class="referral-box">
+                <div class="referral-head">
+                  <span>MAP OF REFERRAL</span>
+                  <b>牵涉痛常去往</b>
+                </div>
+                <div class="referral-chips" id="detailReferral"></div>
+              </div>
+            </section>
+
+            <section class="info-section">
+              <div class="section-label"><span>03</span> 可能牵连 <em>PAIN CHAIN</em></div>
+              <p class="section-note">这些肌群常与它同处一条张力链。点击可切换查看。</p>
+              <div class="related-list" id="relatedList"></div>
+            </section>
+
+            <section class="info-section">
+              <div class="section-label"><span>04</span> 30 秒自查</div>
+              <div class="test-list" id="testList"></div>
+              <p class="test-note">自查动作只用于观察，不追求疼痛或弹响。若动作中出现麻木、无力或锐痛，请停止。</p>
+            </section>
+
+            <section class="info-section">
+              <div class="section-label"><span>05</span> 可以先这样处理</div>
+              <ul class="care-list" id="careList"></ul>
+              <div class="warning-card" id="warningCard">
+                <div class="warning-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none"><path d="M12 8v5M12 16.5v.1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M10.4 3.9 3.1 17a2 2 0 0 0 1.8 3h14.2a2 2 0 0 0 1.8-3L13.6 3.9a1.85 1.85 0 0 0-3.2 0Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+                </div>
+                <div><b>需要留意</b><p id="warningText"></p></div>
+              </div>
+            </section>
+
+            <section class="evidence-note">
+              <span class="evidence-rule"></span>
+              <p>疼痛模式参考常见肌筋膜牵涉痛与肌肉骨骼评估资料，经过简化用于自查。同一个部位的疼痛可能来自不同结构，本页不能替代体格检查与影像诊断。</p>
+            </section>
+          </div>
+
+          <div class="detail-scroll-hint" id="detailScrollHint">
+            <span>向下滚动 · 查看更多</span>
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m7 10 5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+
+          <footer class="detail-footer">
+            <button class="primary-button add-pain-button" id="addPainBtn" type="button">
+              <span class="plus-mark">+</span>
+              <span>记录这个痛点</span>
+            </button>
+            <button class="secondary-action" id="detailFocusBtn" type="button">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="12" cy="12" r="3.2" stroke="currentColor" stroke-width="1.4"/></svg>
+              <span>聚焦</span>
+            </button>
+          </footer>
+        </article>
+      </aside>
+    </main>
+  </div>
+
+  <div class="toast-stack" id="toastStack" aria-live="polite"></div>
+
+  <!-- 记录痛点 -->
+  <div class="modal-backdrop" id="painModal" hidden>
+    <div class="modal-card pain-card" role="dialog" aria-modal="true" aria-labelledby="painModalTitle">
+      <button class="modal-close" data-close="painModal" type="button" aria-label="关闭">
+        <svg viewBox="0 0 24 24" fill="none"><path d="m7 7 10 10M17 7 7 17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      </button>
+      <p class="kicker">PAIN LOG <span>·</span> 02</p>
+      <h2 id="painModalTitle">记录这个痛点</h2>
+      <p class="modal-subtitle">不需要精确，只要足够像你此刻的感受。</p>
+
+      <div class="pain-selected">
+        <div class="selected-index" id="painSelectedIndex">07</div>
+        <div>
+          <b id="painSelectedName">斜方肌</b>
+          <span id="painSelectedEn">Trapezius</span>
+        </div>
+        <div class="selected-side" id="painSelectedSide">左侧</div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-label-row">
+          <label for="intensityRange">疼痛强度</label>
+          <output id="intensityValue">4<span>/10</span></output>
+        </div>
+        <input id="intensityRange" class="range" type="range" min="0" max="10" step="1" value="4" />
+        <div class="range-scale"><span>0 无痛</span><span>5 中等</span><span>10 难以忍受</span></div>
+      </div>
+
+      <div class="form-section">
+        <label>记录哪一侧 <span class="optional">按身体自身方向</span></label>
+        <div class="segment-control" id="sideOptions" role="group" aria-label="疼痛侧别">
+          <button type="button" class="is-active" data-side="left">左侧</button>
+          <button type="button" data-side="right">右侧</button>
+          <button type="button" data-side="both">双侧 / 中间</button>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <label>疼痛更像哪一种？<span class="optional">可多选</span></label>
+        <div class="choice-chips" id="painTypeOptions">
+          <button type="button" data-type="酸痛">酸痛</button>
+          <button type="button" data-type="胀痛">胀痛</button>
+          <button type="button" data-type="刺痛">刺痛</button>
+          <button type="button" data-type="灼痛">灼痛</button>
+          <button type="button" data-type="放射痛">放射痛</button>
+          <button type="button" data-type="麻木">麻木</button>
+          <button type="button" data-type="僵硬">僵硬</button>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-section">
+          <label for="durationSelect">持续多久了</label>
+          <select id="durationSelect">
+            <option>今天刚开始</option>
+            <option>2–3 天</option>
+            <option selected>1–2 周</option>
+            <option>2–6 周</option>
+            <option>超过 6 周</option>
+            <option>反复发作</option>
+          </select>
+        </div>
+        <div class="form-section">
+          <label for="triggerInput">什么动作会让它更痛？<span class="optional">选填</span></label>
+          <input id="triggerInput" type="text" placeholder="如：转头、久坐、下楼梯" maxlength="40" />
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="text-button" data-close="painModal" type="button">取消</button>
+        <button class="primary-button" id="savePainBtn" type="button">加入我的自查 <span>→</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 我的自查 / 报告 -->
+  <div class="modal-backdrop" id="checkModal" hidden>
+    <div class="modal-card check-card" role="dialog" aria-modal="true" aria-labelledby="checkModalTitle">
+      <button class="modal-close" data-close="checkModal" type="button" aria-label="关闭">
+        <svg viewBox="0 0 24 24" fill="none"><path d="m7 7 10 10M17 7 7 17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      </button>
+
+      <div class="check-view" id="checkFormView">
+        <p class="kicker">MY SELF-CHECK <span>·</span> 03</p>
+        <h2 id="checkModalTitle">把几个痛点放在一起看</h2>
+        <p class="modal-subtitle">疼痛很少单独发生。记录 1–3 个最困扰你的位置，再回答几个安全筛查问题。</p>
+
+        <div class="check-layout">
+          <section class="recorded-section">
+            <div class="section-label"><span>A</span> 已记录的痛点 <b id="recordedCount">0</b></div>
+            <div class="recorded-list" id="recordedList"></div>
+            <button class="text-link" id="addMoreBtn" type="button">＋ 继续在模型上记录</button>
+          </section>
+
+          <section class="redflag-section">
+            <div class="section-label"><span>B</span> 安全筛查</div>
+            <p class="section-note">如果符合任一项，请优先寻求医疗评估，而不是继续自我放松。</p>
+            <div class="redflag-list" id="redflagList"></div>
+          </section>
+        </div>
+
+        <div class="check-footer">
+          <p class="privacy-note">
+            <svg viewBox="0 0 24 24" fill="none"><rect x="5" y="10" width="14" height="10" rx="2" stroke="currentColor"/><path d="M8.5 10V7.5a3.5 3.5 0 0 1 7 0V10" stroke="currentColor"/></svg>
+            所有记录只保存在你的浏览器中，不会上传。
+          </p>
+          <button class="primary-button" id="generateBtn" type="button" disabled>生成我的自查小结 <span>→</span></button>
+        </div>
+      </div>
+
+      <div class="report-view" id="reportView" hidden>
+        <div class="report-topline">
+          <button class="back-link" id="backToCheckBtn" type="button">← 返回修改</button>
+          <button class="text-button" id="printBtn" type="button">打印 / 保存 PDF</button>
+        </div>
+        <p class="kicker">PERSONAL PAIN REVIEW <span>·</span> <span id="reportDate"></span></p>
+        <h2 id="reportHeadline">你的疼痛线索</h2>
+        <p class="modal-subtitle" id="reportIntro"></p>
+        <div class="report-content" id="reportContent"></div>
+        <div class="report-disclaimer">
+          <b>请记住</b>
+          <p>这份小结基于你主动记录的肌肉与症状，不是医学诊断。它适合帮助你在就诊时更清楚地描述疼痛，也适合作为观察变化的起点。</p>
+        </div>
+        <div class="print-footer">
+          肌源 MyoMap · 3D 肌肉疼痛自查 · 本小结仅用于健康教育，不构成诊断或治疗建议 · 记录保存在本机
+        </div>
+        <div class="report-actions">
+          <button class="secondary-button" id="restartBtn" type="button">重新自查</button>
+          <button class="primary-button" id="printBtn2" type="button">打印 / 保存 PDF</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 使用说明 -->
+  <div class="modal-backdrop" id="helpModal" hidden>
+    <div class="modal-card help-card" role="dialog" aria-modal="true" aria-labelledby="helpModalTitle">
+      <button class="modal-close" data-close="helpModal" type="button" aria-label="关闭">
+        <svg viewBox="0 0 24 24" fill="none"><path d="m7 7 10 10M17 7 7 17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      </button>
+      <p class="kicker">HOW IT WORKS <span>·</span> GUIDE</p>
+      <h2 id="helpModalTitle">把它当作一张身体地图</h2>
+      <p class="modal-subtitle">不用于诊断，但可以帮你更有条理地观察、记录和描述疼痛。</p>
+      <div class="help-grid">
+        <div class="help-step">
+          <span>01</span>
+          <h3>点选疼痛附近</h3>
+          <p>旋转模型，点击你疼痛位置对应的肌肉。也可以从左侧索引或模型上方的痛点标记开始。</p>
+        </div>
+        <div class="help-step">
+          <span>02</span>
+          <h3>看牵涉痛，不只看痛点</h3>
+          <p>很多肌肉会把疼痛“投射”到别处。留意面板里的牵涉区域，以及可能一起紧张的肌群。</p>
+        </div>
+        <div class="help-step">
+          <span>03</span>
+          <h3>记录并做安全筛查</h3>
+          <p>记录强度、侧别与疼痛类型。生成小结前请认真完成安全筛查；红旗信号优先处理。</p>
+        </div>
+      </div>
+      <div class="help-tip">
+        <b>操作提示</b>
+        <p>拖拽旋转 · 滚轮缩放 · 双击聚焦。深层肌肉被其他结构挡住时，打开顶部「透视」或按 X 键，让非选中肌肉变淡。</p>
+      </div>
+      <div class="help-credit">
+        <p>解剖网格来自 <a href="https://www.z-anatomy.com/" target="_blank" rel="noopener noreferrer">Z-Anatomy</a>，经 <a href="https://github.com/hpfrei/body-anatomy-3d-viewer" target="_blank" rel="noopener noreferrer">hpfrei/body-anatomy-3d-viewer</a> 简化，CC BY-SA 4.0。本工具为同许可证下的衍生作品。</p>
+        <p>健康内容为教育性整理，不构成医疗建议。</p>
+      </div>
+      <button class="primary-button help-start" data-close="helpModal" type="button">开始探索 <span>→</span></button>
+    </div>
+  </div>
+
+  <script>
+    // ES modules and model fetching require an HTTP origin. Make file:// double-clicks self-explanatory.
+    if (location.protocol === 'file:') {
+      var loading = document.getElementById('loadingLayer');
+      var error = document.getElementById('errorLayer');
+      if (loading) loading.classList.add('is-done');
+      if (error) error.classList.add('is-visible');
+    }
+  </script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./libs/three.module.js",
+        "three/addons/": "./libs/"
+      }
+    }
+  </script>
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>

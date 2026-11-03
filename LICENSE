@@ -1,0 +1,40 @@
+Creative Commons Attribution-ShareAlike 4.0 International License (CC BY-SA 4.0)
+
+Copyright (c) 2026 MyoMap contributors
+
+This work — including the application code, interface design and the adapted
+anatomical asset distribution in this repository — is licensed under the
+Creative Commons Attribution-ShareAlike 4.0 International License.
+
+You are free to:
+
+- Share — copy and redistribute the material in any medium or format.
+- Adapt — remix, transform, and build upon the material for any purpose,
+  even commercially.
+
+Under the following terms:
+
+- Attribution — You must give appropriate credit, provide a link to the
+  license, and indicate if changes were made. You may do so in any reasonable
+  manner, but not in any way that suggests the licensor endorses you or your use.
+- ShareAlike — If you remix, transform, or build upon the material, you must
+  distribute your contributions under the same license as the original.
+- No additional restrictions — You may not apply legal terms or technological
+  measures that legally restrict others from doing anything the license permits.
+
+Attribution for the anatomical mesh:
+
+- Z-Anatomy — https://www.z-anatomy.com/ (CC BY-SA 4.0)
+- The browser-optimized derivative `assets/body.glb` was produced by hpfrei at
+  https://github.com/hpfrei/body-anatomy-3d-viewer (CC BY-SA 4.0).
+- This project adds custom materials, vertex colouring, procedural surface
+  shading, categorization and pain self-check content around that mesh.
+
+Health content in `js/data.js` is an educational synthesis for general
+self-observation. It is not medical advice, diagnosis, or treatment.
+
+The full legal code of this license is available at:
+https://creativecommons.org/licenses/by-sa/4.0/legalcode
+
+A human-readable summary is available at:
+https://creativecommons.org/licenses/by-sa/4.0/
